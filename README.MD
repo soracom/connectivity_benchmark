@@ -20,3 +20,18 @@ sudo service ModemManager stop
 
 Then run the script as follows:
 - python connectivity_benchmark.py
+
+# Benchmark report
+Benchmark report looks like this
+```
+# -----------------BENCHMARK STATISTICS-----------------
+SIM ICCID 89423xxxxxxxxxxxxxx IMSI 295xxxxxxxxxxxx
+Status                        : active
+Online                        : True
+Start time (after cache clear): 2020-07-08 06:24:37.603788
+Network registered time       : 2020-07-08 06:24:46.784700
+Console Online time           : 2020-07-08 06:24:53.562923
+Time taken to register network: 0:00:09.180912
+Time taken to come online     : 0:00:15.959135
+# ------------------------------------------------------
+```
