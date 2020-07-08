@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 #Set these variables before starting
-serial_port = "/tty/USB2" # Modem serial port Eg "COM6" or "/tty/USB0"
+serial_port = "/dev/ttyUSB0" # Modem serial port Eg "COM6" or "/dev/ttyUSB0"
 activate = False #Set this to true to force Sim activation on the console if Status is found to be "ready" instead of "active"
 
 verbose = True
@@ -318,7 +318,7 @@ print("Start time (after cache clear): "+str(startTime))
 print("Network registered time       : "+str(cregTime))
 #print("PDP context activated time   : "+str(cgactTime))
 print("Console Online time           : "+str(onlineTime))
-print("Time taken to register network: "+str(startTime-cregTime))
-print("Time taken to come online     : "+str(startTime-onlineTime))
+print("Time taken to register network: "+str(cregTime-startTime))
+print("Time taken to come online     : "+str(onlineTime-startTime))
 
 print("# ------------------------------------------------------")
