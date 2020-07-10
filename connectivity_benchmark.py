@@ -5,14 +5,18 @@ import requests
 import json
 from datetime import datetime
 
+ACCESS_TECHNOLOGY_GSM = "0" #2G
+ACCESS_TECHNOLOGY_UMTS = "2" #3G
+ACCESS_TECHNOLOGY_EUTRAN = "7" #LTE
+
 #Set these variables before starting
 serial_port = os.environ.get('BENCHMARK_TEST_MODEM_PORT', '/dev/ttyUSB0') # Modem serial port Eg "COM6" or "/dev/ttyUSB0"
 activate = os.environ.get('BENCHMARK_TEST_ACTIVATE_SIM', 'False') #Set this to true to force Sim activation on the console if Status is found to be "ready" instead of "active"
+default_acT = os.environ.get('BENCHMARK_TEST_ACCESS_TECH', ACCESS_TECHNOLOGY_UMTS ) #Change this to the desired access technology
 
 verbose = True
 authKeyId = os.environ.get('SORACOM_AUTH_KEY_ID') 
 authKey = os.environ.get('SORACOM_AUTH_KEY')
-
 
 
 class Modem(object):
@@ -54,18 +58,39 @@ class Modem(object):
                 break
             else:
                 if get_value:
-                    self.last_value = self.last_value + line
+                    self.last_value = line.strip()
         return retVal
 
+    def get_last_value(self):
+        return self.last_value
+	
     def get_imsi(self):
         return self.send_command('AT+CIMI\r\n',get_value=True)
+	
+    def get_manufacturer(self):
+        return self.send_command('AT+CGMI\r\n',get_value=True)
 
+    def get_model(self):
+        return self.send_command('AT+CGMM\r\n',get_value=True)
+
+    def get_revision(self):
+        return self.send_command('AT+CGMR\r\n',get_value=True)
+
+    def get_serial_number(self):
+        return self.send_command('AT+CGSN\r\n',get_value=True)
+		
     def set_operation_mode(self, fun, rst=0):
         return self.send_command('AT+CFUN=%d, %d\r\n'%(fun,rst),get_value=False)
 
     def get_registration_status(self):
         return self.send_command('AT+CREG?\r\n',get_value=True)
 
+    def get_network_status(self):
+        return self.send_command('AT+COPS?\r\n',get_value=True)
+
+    def get_signal_quality(self):
+        return self.send_command('AT+CSQ\r\n',get_value=True)
+		
     def get_reg_status_from_last_value(self):
         if self.last_value != None:
             creg = self.last_value.strip()
@@ -74,13 +99,13 @@ class Modem(object):
                 stat_str = creg[comma_idx+1:]
                 comma_idx = stat_str.find(',')
                 if comma_idx == -1:
-                    return int (stat_str[0:])
+                    return int (stat_str[0:].strip())
                 else:
-                    return int (stat_str[0:comma_idx])
+                    return int (stat_str[0:comma_idx].strip())
         return None
 
-    def set_network_registration_auto(self):
-        retval = self.send_command('AT+COPS=0\r\n',get_value=False)
+    def set_network_registration_auto(self, act=default_acT):
+        retval = self.send_command('AT+COPS=0,2,"",%s\r\n'%act,get_value=False)
         return retval
 
     def activate_packet_data_context(self):
@@ -187,6 +212,20 @@ else:
     print("Failed to retrieve the IMSI from modem!")
     exit(-1)
 
+manufacturer=''
+model=''
+revision=''
+serial_number=''
+
+if m.get_manufacturer():
+    manufacturer = m.last_value.strip()
+if m.get_model():
+    model = m.last_value.strip()
+if m.get_revision():
+    revision = m.last_value.strip()
+if m.get_serial_number():
+    serial_number = m.last_value.strip()
+	
 #QUERY SIM STATUS
 if verbose:
     print("# Querying sim status")
@@ -262,6 +301,14 @@ while creg_stat != 1 and creg_stat != 5 :
     if m.get_registration_status():
         creg_stat = m.get_reg_status_from_last_value()
 
+cops=''
+if m.get_network_status():
+    cops = m.get_last_value()
+
+csq=''
+if m.get_signal_quality():
+    csq = m.get_last_value()
+	
 #RECORD CREG TIME
 cregTime = datetime.now()
 if verbose:
@@ -316,7 +363,11 @@ onlineTime = datetime.now()
 print("# -----------------BENCHMARK STATISTICS-----------------")
 
 print("SIM ICCID %s IMSI %s"%(iccid,imsi))
-print("Status                        : %s"%status)
+print("Modem Manufacturer            : %s"%manufacturer)
+print("Modem Model                   : %s"%model)
+print("Modem Revision                : %s"%revision)
+print("Modem Serial number           : %s"%serial_number)
+print("Sim Status on console         : %s"%status)
 print("Online                        : "+str(online))
 print("Start time (after cache clear): "+str(startTime))
 print("Network registered time       : "+str(cregTime))
@@ -324,5 +375,6 @@ print("Network registered time       : "+str(cregTime))
 print("Console Online time           : "+str(onlineTime))
 print("Time taken to register network: "+str(cregTime-startTime))
 print("Time taken to come online     : "+str(onlineTime-startTime))
-
+print("Network registered            : "+cops)
+print("Signal quality                : "+csq)
 print("# ------------------------------------------------------")

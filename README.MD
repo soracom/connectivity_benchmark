@@ -22,18 +22,22 @@ Then run the script as follows:
 
 # Benchmark report
 Benchmark report looks like this
-## HUAWEI MS2131
+
 ```
 # -----------------BENCHMARK STATISTICS-----------------
-SIM ICCID 8942310017000737951 IMSI 295050910081795
-Status                        : active
+SIM ICCID 89423xxxxxxxxxxxxxx IMSI xxxxxxxxxxxxxxx
+Modem Manufacturer            : aaaaaa
+Modem Model                   : bbbbbb
+Modem Revision                : cccccc
+Modem Serial number           : dddddd
+Sim Status on console         : active
 Online                        : True
-Start time (after cache clear): 2020-07-10 10:36:53.049000
-Network registered time       : 2020-07-10 10:38:05.938000
-Console Online time           : 2020-07-10 10:38:11.811000
-Time taken to register network: 0:01:12.889000
-Time taken to come online     : 0:01:18.762000
+Start time (after cache clear): 2020-07-10 12:21:39.232000
+Network registered time       : 2020-07-10 12:22:39.550000
+Console Online time           : 2020-07-10 12:22:43.493000
+Time taken to register network: 0:01:00.318000
+Time taken to come online     : 0:01:04.261000
+Network registered            : +COPS: 0,0,"NNNNN",2
+Signal quality                : +CSQ: 11,99
 # ------------------------------------------------------
 ```
-
-##SORACOM ONYX
