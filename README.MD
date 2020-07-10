@@ -9,13 +9,12 @@ This python script is a utility to record the time taken by Soracom sim to chang
   - pip install pyserial
   - pip install requests
 - The Soracom credentials must be set in the environment variables before running and Soracom sim must be connected in a modem
-  - export SORACOM_AUTH_KEY_ID=<keyId>
-  - export SORACOM_AUTH_KEY=<secret>
-- Edit the script and set the correct serial port for the modem and preference for changing status from ready to active on the console
-  - serial_port = "/dev/ttyUSB2" 
-  - activate = False
-
-NOTE: If Modem manager is installed on your device, you might want to stop it before starting
+  - export SORACOM_AUTH_KEY_ID=keyId
+  - export SORACOM_AUTH_KEY=secret
+- You may also override the default settings for the serial port of the modem and for the preference about changing status from ready to active on the console
+  - export BENCHMARK_TEST_MODEM_PORT=/dev/ttyUSB0
+  - export BENCHMARK_TEST_ACTIVATE_SIM=False
+NOTE: If Modem manager is installed on your device, you might want to stop it before starting the test
 sudo service ModemManager stop
 
 Then run the script as follows:
@@ -23,15 +22,18 @@ Then run the script as follows:
 
 # Benchmark report
 Benchmark report looks like this
+## HUAWEI MS2131
 ```
 # -----------------BENCHMARK STATISTICS-----------------
-SIM ICCID 89423xxxxxxxxxxxxxx IMSI 295xxxxxxxxxxxx
+SIM ICCID 8942310017000737951 IMSI 295050910081795
 Status                        : active
 Online                        : True
-Start time (after cache clear): 2020-07-08 06:24:37.603788
-Network registered time       : 2020-07-08 06:24:46.784700
-Console Online time           : 2020-07-08 06:24:53.562923
-Time taken to register network: 0:00:09.180912
-Time taken to come online     : 0:00:15.959135
+Start time (after cache clear): 2020-07-10 10:36:53.049000
+Network registered time       : 2020-07-10 10:38:05.938000
+Console Online time           : 2020-07-10 10:38:11.811000
+Time taken to register network: 0:01:12.889000
+Time taken to come online     : 0:01:18.762000
 # ------------------------------------------------------
 ```
+
+##SORACOM ONYX

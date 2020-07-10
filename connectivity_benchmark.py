@@ -6,12 +6,13 @@ import json
 from datetime import datetime
 
 #Set these variables before starting
-serial_port = "/dev/ttyUSB0" # Modem serial port Eg "COM6" or "/dev/ttyUSB0"
-activate = False #Set this to true to force Sim activation on the console if Status is found to be "ready" instead of "active"
+serial_port = os.environ.get('BENCHMARK_TEST_MODEM_PORT', '/dev/ttyUSB0') # Modem serial port Eg "COM6" or "/dev/ttyUSB0"
+activate = os.environ.get('BENCHMARK_TEST_ACTIVATE_SIM', 'False') #Set this to true to force Sim activation on the console if Status is found to be "ready" instead of "active"
 
 verbose = True
 authKeyId = os.environ.get('SORACOM_AUTH_KEY_ID') 
 authKey = os.environ.get('SORACOM_AUTH_KEY')
+
 
 
 class Modem(object):
@@ -77,6 +78,10 @@ class Modem(object):
                 else:
                     return int (stat_str[0:comma_idx])
         return None
+
+    def set_network_registration_auto(self):
+        retval = self.send_command('AT+COPS=0\r\n',get_value=False)
+        return retval
 
     def activate_packet_data_context(self):
         retval = self.send_command('AT+CGDCONT=1,"IP","soracom.io"\r\n',get_value=False)
@@ -166,11 +171,11 @@ if authKeyId == None or authKey == None:
 m = Modem(serial_port)
 api = SoracomApiService()
 
-#SET OPERATION MODE : LOW POWER MODE
-if verbose:
-    print("# Setting operation mode: low power mode")
-m.set_operation_mode(0)
-time.sleep(2)
+#SET OPERATION MODE : LOW POWER MODE [NOT SUPPORTED BY ALL MODEM]
+#if verbose:
+#    print("# Setting operation mode: low power mode")
+#m.set_operation_mode(0)
+#time.sleep(2)
 
 #READ IMSI
 if verbose:
@@ -214,7 +219,7 @@ if status != "ready" and status != "active":
     exit(-1)
 
 #STATUS = READY, ACTIVATE SIM IF NECESSARY (option)
-if status == "ready" and activate:
+if status == "ready" and activate.lower()=="true":
     stat = api.auth(authKeyId,authKey)
     if stat != 200:
         print("Failed to activate sim with status code " +stat)
@@ -238,14 +243,15 @@ time.sleep(10)
 m.close()
 m = Modem(serial_port)
 
-#RECORD START TIME
-startTime = datetime.now()
-
 #SET OPERATION MODE: ONLINE MODE
 if verbose:
     print("# Setting operation mode: online mode")
 m.set_operation_mode(1,1)
-time.sleep(2)
+time.sleep(20)
+
+#RECORD START TIME
+startTime = datetime.now()
+m.set_network_registration_auto()
 
 #WAIT FOR CREG
 if verbose:
@@ -253,10 +259,8 @@ if verbose:
 creg_stat = 0
 while creg_stat != 1 and creg_stat != 5 :
     time.sleep(1)
-    if not m.get_registration_status():
-        print("Failed to get network registration!")
-        exit(-1)
-    creg_stat = m.get_reg_status_from_last_value()
+    if m.get_registration_status():
+        creg_stat = m.get_reg_status_from_last_value()
 
 #RECORD CREG TIME
 cregTime = datetime.now()
