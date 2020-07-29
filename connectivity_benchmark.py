@@ -41,24 +41,25 @@ class Modem(object):
             self.last_value = ''
         if verbose:
             print(command)
-        self.ser.write(command)
+        self.ser.write(command.encode())
         data = self.ser.readlines()
         for line in data:
             if not line:
-                continue
-            if line=="\r\n":
+                continue        
+            lineStr = line.decode()
+            if lineStr=="\r\n":
                 continue
             if verbose:
-                print(line)
-            if line.startswith('OK'):
+                print(lineStr)
+            if lineStr.startswith('OK'):
                 retVal = True
                 break;
-            elif line.startswith('ERROR'):
+            elif lineStr.startswith('ERROR'):
                 retVal = False
                 break
             else:
                 if get_value:
-                    self.last_value = line.strip()
+                    self.last_value = lineStr.strip()
         return retVal
 
     def get_last_value(self):
