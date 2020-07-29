@@ -17,7 +17,9 @@ default_acT = os.environ.get('BENCHMARK_TEST_ACCESS_TECH', ACCESS_TECHNOLOGY_UMT
 verbose = True
 authKeyId = os.environ.get('SORACOM_AUTH_KEY_ID') 
 authKey = os.environ.get('SORACOM_AUTH_KEY')
-
+#not recommended to used username and password method. This is here only for testing
+username = os.environ.get('SORACOM_USERNAME') 
+password = os.environ.get('SORACOM_PASSWORD')
 
 class Modem(object):
 
@@ -155,6 +157,8 @@ class SoracomApiService(object):
         self.operatorId = ''
         self.apiKey=''
         self.apiToken=''
+        self.username=''
+        self.password=''
         self.operatorId=''
         self.apiRoot='https://g.api.soracom.io/v1/'
 
@@ -172,7 +176,19 @@ class SoracomApiService(object):
             self.operatorId = json_response['operatorId']
             self.apiToken = json_response['token']
         return r.status_code
-    
+		
+    def authPassword(self, username, password):
+        url = self.apiRoot + "auth"
+        data = {'email': username, 'password': password}
+        headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+        r = requests.post(url, data=json.dumps(data), headers=headers)
+        if r.status_code == 200:
+            json_response  = r.json()
+            self.apiKey = json_response['apiKey']
+            self.operatorId = json_response['operatorId']
+            self.apiToken = json_response['token']
+        return r.status_code
+		
     def get_subscriber(self, imsi):
         url = self.apiRoot + "subscribers/" + imsi
         r = requests.get(url, headers=self.get_auth_headers())
@@ -192,8 +208,10 @@ if verbose:
     print("# Starting!")
 
 if authKeyId == None or authKey == None:
-    print("Missing environment var SORACOM_AUTH_KEY_ID or SORACOM_AUTH_KEY!")
-    exit(-1)
+    if username == None or password == None:
+        print("Missing environment var SORACOM_AUTH_KEY_ID or SORACOM_AUTH_KEY!")
+        exit(-1)
+	
 m = Modem(serial_port)
 api = SoracomApiService()
 
@@ -230,14 +248,18 @@ if m.get_serial_number():
 #QUERY SIM STATUS
 if verbose:
     print("# Querying sim status")
-stat = api.auth(authKeyId,authKey)
+if authKeyId == None or authKey == None:
+    stat = api.authPassword(username,password)
+else:
+    stat = api.auth(authKeyId,authKey)
+
 if stat== 200:
     subscriber = api.get_subscriber(imsi)
     if subscriber == None:
         print("Failed to retrieve the Subscriber data!")
         exit(-1)
 else:
-    print("Authentication failed with status code " +stat)
+    print("Authentication failed with status code " +str(stat))
     exit(-1)
 
 modTime = datetime.fromtimestamp(float(subscriber['lastModifiedAt'])/1000.0)
@@ -277,7 +299,7 @@ if not m.clear_sim_cache():
 if verbose:
     print("# Clearing modem cache")
 m.clear_modem_cache()
-time.sleep(10)
+time.sleep(20)
 
 #Connection is lost when reseting cache
 m.close()
