@@ -282,7 +282,7 @@ if status != "ready" and status != "active":
 
 #STATUS = READY, ACTIVATE SIM IF NECESSARY (option)
 if status == "ready" and activate.lower()=="true":
-    stat = api.auth(authKeyId,authKey)
+    stat = api.activate_subscriber(imsi)
     if stat != 200:
         print("Failed to activate sim with status code " +stat)
         exit(-1)
@@ -297,7 +297,7 @@ if not m.clear_sim_cache():
 
 #CLEAR MODEM CACHE
 if verbose:
-    print("# Clearing modem cache")
+    print("# Clearing modem cache. Please wait ...")
 m.clear_modem_cache()
 time.sleep(20)
 
@@ -307,9 +307,9 @@ m = Modem(serial_port)
 
 #SET OPERATION MODE: ONLINE MODE
 if verbose:
-    print("# Setting operation mode: online mode")
+    print("# Setting operation mode: online mode. Please wait ...")
 m.set_operation_mode(1,1)
-time.sleep(20)
+time.sleep(30)
 
 #RECORD START TIME
 startTime = datetime.now()
