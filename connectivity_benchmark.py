@@ -299,7 +299,7 @@ if not m.clear_sim_cache():
 if verbose:
     print("# Clearing modem cache. Please wait ...")
 m.clear_modem_cache()
-time.sleep(20)
+time.sleep(30)
 
 #Connection is lost when reseting cache
 m.close()
@@ -310,6 +310,9 @@ if verbose:
     print("# Setting operation mode: online mode. Please wait ...")
 m.set_operation_mode(1,1)
 time.sleep(30)
+#Sometimes Connection is lost when doing AT+CFUN
+m.close()
+m = Modem(serial_port)
 
 #RECORD START TIME
 startTime = datetime.now()
@@ -364,7 +367,7 @@ m.close()
 
 #WAIT FOR SIM STATUS CHANGE
 if verbose:
-    print("# Waiting for sim status to change")
+    print("# Waiting for sim status to change. Please wait ...")
     
 while not online:
     time.sleep(1)
