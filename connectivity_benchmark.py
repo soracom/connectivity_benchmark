@@ -94,7 +94,7 @@ class Modem(object):
     def get_signal_quality(self):
         return self.send_command('AT+CSQ\r\n',get_value=True)
 		
-    def get_reg_status_from_last_value(self):
+    def get_reg_status_from_last_creg_value(self):
         if self.last_value != None:
             creg = self.last_value.strip()
             if creg.startswith("+CREG: "):
@@ -322,10 +322,31 @@ m.set_network_registration_auto()
 if verbose:
     print("# Waiting for network registration")
 creg_stat = 0
+n = 0
 while creg_stat != 1 and creg_stat != 5 :
     time.sleep(1)
+    n = n + 1
     if m.get_registration_status():
-        creg_stat = m.get_reg_status_from_last_value()
+        creg_stat = m.get_reg_status_from_last_creg_value()
+    #Each 5 seconds if MT is not searching force the search
+    if creg_stat == 0:
+        print("# Modem is NOT currently searching network...")
+        if (n%60) == 0:
+            print("# Reseting functionality ...")
+            m.set_operation_mode(1,0)
+        elif (n%15 == 0):
+            print("# Requesting automatic search ...")
+            m.set_network_registration_auto()
+    elif creg_stat == 1:
+        print("# Modem is registered on home network...")
+    elif creg_stat == 2:
+        print("# Modem is currently searching network...")
+    elif creg_stat == 3:
+        print("# Registration denied...")
+    elif creg_stat == 5:
+        print("# Modem is registered on roaming network...")
+    else:
+        print("# Modem is in unknown registration state...")
 
 cops=''
 if m.get_network_status():
