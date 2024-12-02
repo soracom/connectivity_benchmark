@@ -39,12 +39,18 @@ class Modem(object):
         self.ser.flushInput()
         self.ser.flushOutput()
         retVal = False
+	data = ''
         if get_value:
             self.last_value = ''
         if verbose:
             print(command)
         self.ser.write(command.encode())
-        data = self.ser.readlines()
+	try:
+            data = self.ser.readlines()
+        except serial.SerialException:
+	    print("Caught a serial exception, changing serial port and continuing on...")
+	    global serial_port
+	    serial_port = '/dev/ttyUSB2'
         for line in data:
             if not line:
                 continue        
